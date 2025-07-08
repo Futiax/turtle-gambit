@@ -1,12 +1,10 @@
---        My master awaits...        --
-
-
-
-
---      We should join forces.       --
-
---      @Ottomated_ on twitter.      --
-
+--[[
+    Turtle Control OS
+    Originally created by ottomated, modified by PrintedScript
+    https://github.com/PrintedScript/turtle-control
+]]
+-- Settings
+local websocketServer = "ws://localhost:5757"
 
 
 -- BEGIN JSON LIBRARY --
@@ -500,6 +498,14 @@ end
 
 -- BEGIN MAIN CODE --
 
+-- check if we are running on a disk
+if fs.exists("/disk/startup") then
+    if not fs.exists("/startup") then
+        fs.copy("/disk/startup", "/startup")
+        shell.run("reboot")
+    end
+end
+
 function undergoMitosis()
 	turtle.select(getItemIndex("computercraft:peripheral"))
 	if not turtle.place() then
@@ -514,11 +520,10 @@ function undergoMitosis()
 	if not turtle.place() then
 		return nil
 	end
-	peripheral.call("front", "turnOn")
 	turtle.select(1)
 	turtle.drop(math.floor(turtle.getItemCount() / 2))
 	os.sleep(1)
-	peripheral.call("front", "reboot")
+	peripheral.call("front", "turnOn")
 	local cloneId = peripheral.call("front", "getID")
 	if not turtle.down() then
 		return nil
@@ -530,6 +535,14 @@ function undergoMitosis()
 		return nil
 	end
 	return cloneId
+end
+
+function GetGPSLocation()
+    local X, Y, Z = gps.locate(5)
+    if X == nil then
+        return nil,nil,nil
+    end
+    return X, Y, Z
 end
 
 function mineTunnel(obj, ws)
@@ -592,10 +605,10 @@ function mineTunnel(obj, ws)
 	end
 	return blocks
 end
-
+local X,Y,Z = 0,0,0
 function websocketLoop()
 	
-	local ws, err = http.websocket("ws://ottomated.net:43509")
+	local ws, err = http.websocket(websocketServer)
  
 	if err then
 		print(err)
@@ -603,8 +616,8 @@ function websocketLoop()
 		while true do
 			term.clear()
 			term.setCursorPos(1,1)
-			print("      {O}\n")
-			print("Pog Turtle OS. Do not read my code unless you are 5Head.")
+			print("Turtle Control OS, originally created by Ottomated. Modified by PrintedScript")
+            print("View the project on github! https://github.com/PrintedScript/turtle-control")
 			local message = ws.receive()
 			if message == nil then
 				break
@@ -626,6 +639,13 @@ function websocketLoop()
 			elseif obj.type == 'mine' then
 				local status, res = pcall(mineTunnel, obj, ws)
 				ws.send(json.encode({data="end", nonce=obj.nonce}))
+            elseif obj.type == 'location' then
+                X,Y,Z = GetGPSLocation()
+                if X == nil then
+                    ws.send(json.encode({data="null", nonce=obj.nonce}))
+                else
+                    ws.send(json.encode({data={X,Y,Z}, nonce=obj.nonce}))
+                end
 			end
 		end
 	end
@@ -639,11 +659,9 @@ while true do
 	term.clear()
 	term.setCursorPos(1,1)
 	if res == 'Terminated' then
-		print("You can't use straws to kill this turtle...")
-		os.sleep(1)
-		print("Read my code, Michael.")
+		print("Turtle Control OS terminated")
 		break
 	end
-	print("{O} I'm sleeping... please don't mine me :)")
+	print("Sleeping for 5 seconds before attempting reconnection - Turtle Control OS - https://github.com/PrintedScript/turtle-control")
 	os.sleep(5)
 end

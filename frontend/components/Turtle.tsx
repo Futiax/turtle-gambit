@@ -119,7 +119,13 @@ export default function TurtlePage({ turtle, enabled, setDisableEvents }: Turtle
 			<div className={classes.toolbar} style={{ display: enabled ? undefined : "none" }}>
 				<Inventory turtle={turtle} />
 				<div className={classes.groups}>
-					<TurtleButtonGroup turtle={turtle} func="dig" color='#e74c3c' />
+					<ColoredButtonGroup groupColor='#e74c3c' size="small" orientation="vertical">
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.dig(BlockDirection.UP)}><ArrowUpward /></Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.dig(BlockDirection.FORWARD)}>
+							dig
+						</Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.dig(BlockDirection.DOWN)}><ArrowDownward /></Button>
+					</ColoredButtonGroup>
 					<ColoredButtonGroup groupColor='#e67e22' size="small" orientation="vertical">
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => placeBlock(BlockDirection.UP)}><ArrowUpward /></Button>
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => placeBlock(BlockDirection.FORWARD)}>
@@ -127,8 +133,20 @@ export default function TurtlePage({ turtle, enabled, setDisableEvents }: Turtle
 						</Button>
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => placeBlock(BlockDirection.DOWN)}><ArrowDownward /></Button>
 					</ColoredButtonGroup>
-					<TurtleButtonGroup turtle={turtle} func="suck" color='#f1c40f' />
-					<TurtleButtonGroup turtle={turtle} func="drop" color='#2ecc71' />
+					<ColoredButtonGroup groupColor='#f1c40f' size="small" orientation="vertical">
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.suck(BlockDirection.UP)}><ArrowUpward /></Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.suck(BlockDirection.FORWARD)}>
+							suck
+						</Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.suck(BlockDirection.DOWN)}><ArrowDownward /></Button>
+					</ColoredButtonGroup>
+					<ColoredButtonGroup groupColor='#f1c40f' size="small" orientation="vertical">
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.drop(BlockDirection.UP)}><ArrowUpward /></Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.drop(BlockDirection.FORWARD)}>
+							drop
+						</Button>
+						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.drop(BlockDirection.DOWN)}><ArrowDownward /></Button>
+					</ColoredButtonGroup>
 					<ColoredButtonGroup size="small" orientation="vertical" groupColor='#3498db'>
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.craft('all')}>Craft All</Button>
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.craft('one')}>Craft One</Button>
@@ -139,39 +157,38 @@ export default function TurtlePage({ turtle, enabled, setDisableEvents }: Turtle
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle.undergoMitosis()}>Undergo Mitosis</Button>
 						<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => setCommandText('')}>Run Command</Button>
 					</ColoredButtonGroup>
-					<TextField
-						label="Mine Tunnel"
-						variant="outlined"
-						value={mineLength}
-						onChange={(ev) => setMineLength(ev.target.value)}
-						InputProps={{
-							endAdornment: <InputAdornment position="end">
-								<IconButton onClick={() => turtle.mineTunnel('down', parseInt(mineLength))}>
-									<ArrowDownward />
-								</IconButton>
-								<IconButton onClick={() => turtle.mineTunnel('forward', parseInt(mineLength))}>
-									<SvgIcon>
-										<path d="M14.79,10.62L3.5,21.9L2.1,20.5L13.38,9.21L14.79,10.62M19.27,7.73L19.86,7.14L19.07,6.35L19.71,5.71L18.29,4.29L17.65,4.93L16.86,4.14L16.27,4.73C14.53,3.31 12.57,2.17 10.47,1.37L9.64,3.16C11.39,4.08 13,5.19 14.5,6.5L14,7L17,10L17.5,9.5C18.81,11 19.92,12.61 20.84,14.36L22.63,13.53C21.83,11.43 20.69,9.47 19.27,7.73Z" />
-									</SvgIcon>
-								</IconButton>
-								<IconButton onClick={() => turtle.mineTunnel('up', parseInt(mineLength))}>
-									<ArrowUpward />
-								</IconButton>
-							</InputAdornment>
-						}}
-					/>
+					<div>
+					<Typography variant="subtitle2" style={{"color": "rgb(200,200,200)"}}>X: {turtle.x} Y: {turtle.y} Z: {turtle.z}</Typography>
+						<TextField
+							label="Mine Tunnel"
+							variant="outlined"
+							value={mineLength}
+							style={{ "marginBottom":"6%"}}
+							onChange={(ev) => setMineLength(ev.target.value)}
+							InputProps={{
+								endAdornment: <InputAdornment position="end">
+									<IconButton onClick={() => turtle.mineTunnel('down', parseInt(mineLength))}>
+										<ArrowDownward />
+									</IconButton>
+									<IconButton onClick={() => turtle.mineTunnel('forward', parseInt(mineLength))}>
+										<SvgIcon>
+											<path d="M14.79,10.62L3.5,21.9L2.1,20.5L13.38,9.21L14.79,10.62M19.27,7.73L19.86,7.14L19.07,6.35L19.71,5.71L18.29,4.29L17.65,4.93L16.86,4.14L16.27,4.73C14.53,3.31 12.57,2.17 10.47,1.37L9.64,3.16C11.39,4.08 13,5.19 14.5,6.5L14,7L17,10L17.5,9.5C18.81,11 19.92,12.61 20.84,14.36L22.63,13.53C21.83,11.43 20.69,9.47 19.27,7.73Z" />
+										</SvgIcon>
+									</IconButton>
+									<IconButton onClick={() => turtle.mineTunnel('up', parseInt(mineLength))}>
+										<ArrowUpward />
+									</IconButton>
+								</InputAdornment>
+							}}
+						/>
+						
+					</div>
 				</div>
 				<TurtleSwitcher />
 				<CircularProgressWithLabel variant="static" value={turtle.fuel / turtle.maxFuel * 100} label={turtle.fuel} />
 			</div>
 		</>
 	);
-}
-
-interface TurtleButtonGroupProps {
-	turtle: Turtle;
-	func: 'place' | 'dig' | 'drop' | 'suck';
-	color: string;
 }
 
 function ColoredButtonGroup({ groupColor, ...props }: { groupColor: string } & ButtonGroupProps) {
@@ -188,16 +205,4 @@ function ColoredButtonGroup({ groupColor, ...props }: { groupColor: string } & B
 		</MuiThemeProvider >
 	);
 
-}
-
-function TurtleButtonGroup({ turtle, func, color }: TurtleButtonGroupProps) {
-	return (
-		<ColoredButtonGroup groupColor={color} size="small" orientation="vertical">
-			<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle[func](BlockDirection.UP)}><ArrowUpward /></Button>
-			<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle[func](BlockDirection.FORWARD)}>
-				{func}
-			</Button>
-			<Button tabIndex="-1" variant="outlined" color="primary" onClick={() => turtle[func](BlockDirection.DOWN)}><ArrowDownward /></Button>
-		</ColoredButtonGroup>
-	);
 }

@@ -1,12 +1,14 @@
-import { Canvas, MeshProps, extend, useFrame, useThree, ReactThreeFiber, useLoader } from 'react-three-fiber';
 import { useRef, useState, useMemo, useEffect, Suspense, HTMLProps, RefObject, SetStateAction, Dispatch, useContext } from 'react';
-import { Mesh, BoxBufferGeometry, Vector3, Quaternion, Euler, Raycaster, Vector2, Object3D } from 'three';
-import { OrbitControls } from 'three-orbitcontrols-ts';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Canvas, MeshProps, extend, useFrame, useThree, ReactThreeFiber, useLoader } from '@react-three/fiber';
+import { Vector3, Quaternion, Euler, Raycaster, Vector2, Object3D } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Turtle, TurtleContext, World } from '../pages';
 import useEventListener from '@use-it/event-listener';
-import Color from 'color';
 import Tooltip from '@material-ui/core/Tooltip';
+import { TextureLoader } from 'three';
+import * as THREE from 'three';
+import Color from 'color';
 
 extend({ OrbitControls });
 declare global {
@@ -27,7 +29,7 @@ function Controls({ target }: { target: [number, number, number] }) {
 	const { camera, gl } = useThree();
 	useFrame(() => controls.current.update());
 	return (
-		<orbitControls ref={controls} target={target as any} args={[camera, gl.domElement]} dampingFactor={0.1} rotateSpeed={0.5} />
+		<orbitControls ref={controls} target={target as any} args={[camera, gl.domElement]} dampingFactor={0.1} rotateSpeed={0.5} maxDistance={30} />
 	);
 }
 
@@ -53,7 +55,7 @@ function useInterpolate(property: 'position' | 'target', position: [number, numb
 }
 
 function Model({ url, position, rotation, name }: { url: string, name: string, position: [number, number, number], rotation: [number, number, number] }) {
-	const GLTFLoader = require('three/examples/jsm/loaders/GLTFLoader').GLTFLoader;
+	//const GLTFLoader = require('three/examples/jsm/loaders/GLTFLoader').GLTFLoader;
 	const obj = useLoader(GLTFLoader, url) as any;
 	const ref = useInterpolate('position', position, rotation);
 	return (
@@ -72,7 +74,7 @@ function Model({ url, position, rotation, name }: { url: string, name: string, p
 }
 
 function OtherTurtles({ turtles, switchTurtle }: { turtles: Turtle[], switchTurtle: Function }) {
-	const GLTFLoader = require('three/examples/jsm/loaders/GLTFLoader').GLTFLoader;
+	//const GLTFLoader = require('three/examples/jsm/loaders/GLTFLoader').GLTFLoader;
 	const obj = useLoader(GLTFLoader, "/otherturtle.glb") as any;
 
 	return (
@@ -195,20 +197,23 @@ export default function WorldRenderer({ turtle, world, disableEvents, ...props }
 						bottom: position.current.y + 100,
 						width: 0,
 						height: 0,
+						x: 0,
+						y: 0,
+						toJSON: () => { }
 					}),
 				}
 			}}
 			onMouseMove={(ev) => {
-				// console.log(scene);
+				// // console.log(scene);
 				// // mouse.x = (ev.clientX / size.width) * 2 - 1;
 				// // mouse.y = - (ev.clientY / size.height) * 2 + 1;
-				// ray.setFromCamera(mouse, camera)
-				// var intersects = ray.intersectObjects(scene.children);
-				// if (intersects.length > 0) {
-				// 	console.log(intersects[0].object.name);
-				// } else {
-				// 	console.log("Nothing");
-				// }
+				// // ray.setFromCamera(mouse, camera)
+				// // var intersects = ray.intersectObjects(scene.children);
+				// // if (intersects.length > 0) {
+				// // 	console.log(intersects[0].object.name);
+				// // } else {
+				// // 	console.log("Nothing");
+				// // }
 				// console.log(ev.clientY);
 				position.current = { x: ev.clientX, y: ev.clientY - 100 };
 				if (popperRef.current)
@@ -247,11 +252,15 @@ export default function WorldRenderer({ turtle, world, disableEvents, ...props }
 								}
 								return false;
 							})}
-							key={k} position={positions} name={name + ':' + metadata} color={Color({
+							key={k}
+							position={positions}
+							name={metadata !== undefined ? `${name}:${metadata}` : name} // <-- Correction ici
+							color={Color({
 								h: hashCode(name + ':' + metadata) % 360,
 								s: 60,
 								l: 40,
-							}).toString()} />
+							}).toString()}
+						/>
 					}).filter(b => b)}
 					<Suspense fallback={null}>
 						<OtherTurtles switchTurtle={(turtle: Turtle) => {
@@ -265,34 +274,52 @@ export default function WorldRenderer({ turtle, world, disableEvents, ...props }
 }
 
 function Box(props: MeshProps & { color: string, name: string, transparent: boolean }) {
-	if (props.name.includes('computercraft:turtle_expanded')) return null;
-	// This reference will give us direct access to the mesh
-	const mesh = useRef<Mesh>()
+    if (props.name.includes('computercraft:turtle')) return null;
 
-	// Set up state for the hovered and active state
+    const geom = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
 
-	// Rotate mesh every frame, this is outside of React without overhead
-	// useFrame(() => {
-	// 	if (mesh.current) mesh.current.rotation.x = mesh.current.rotation.y += 0.01
-	// 	if (lines.current) lines.current.rotation.x = lines.current.rotation.y += 0.01
-	// })
+    const baseName = props.name.replace(/^minecraft:/, '').split(':')[0].split('[')[0];
+    const texturePaths = [
+        `/textures/block/${baseName}.png`,
+        `/textures/item/${baseName}.png`
+    ];
 
-	const geom = useMemo(() => new BoxBufferGeometry(1, 1, 1), []);
+    let texture: THREE.Texture | undefined;
+    try {
+        texture = useLoader(TextureLoader, texturePaths[0]);
+    } catch {
+        try {
+            texture = useLoader(TextureLoader, texturePaths[1]);
+        } catch {
+            texture = undefined;
+        }
+    }
 
-	return (
-		<>
-			<mesh
-				{...props}
-				ref={mesh}
-				scale={[1, 1, 1]}
-			>
-				<boxBufferGeometry args={[1, 1, 1]} />
-				<meshBasicMaterial color={props.color} transparent={props.transparent} opacity={props.transparent ? 0.5 : 1} />
-			</mesh>
-			<lineSegments scale={[1, 1, 1]} position={props.position}>
-				<edgesGeometry args={[geom]} />
-				<lineBasicMaterial color="black" attach="material" />
-			</lineSegments>
-		</>
-	)
+    useEffect(() => {
+        if (texture) {
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+            texture.needsUpdate = true;
+        }
+    }, [texture]);
+
+    // Si tu veux masquer le bloc tant que la texture charge :
+    if (!texture) return null;
+
+    return (
+        <>
+            <mesh {...props} scale={[1, 1, 1]}>
+                <boxBufferGeometry args={[1, 1, 1]} />
+                <meshBasicMaterial
+                    map={texture}
+                    transparent={props.transparent}
+                    opacity={props.transparent ? 0.5 : 1}
+                />
+            </mesh>
+            <lineSegments scale={[1, 1, 1]} position={props.position}>
+                <edgesGeometry args={[geom]} />
+                <lineBasicMaterial color="black" attach="material" />
+            </lineSegments>
+        </>
+    );
 }

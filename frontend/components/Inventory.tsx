@@ -6,9 +6,6 @@ import Tooltip from '@material-ui/core/Tooltip';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import React, { useState } from 'react';
 import { Turtle } from '../pages';
-import Typography from '@material-ui/core/Typography';
-import { hashCode } from './World';
-import Color from 'color';
 
 const useStyles = makeStyles(() => ({
 
@@ -21,7 +18,8 @@ const useStyles = makeStyles(() => ({
 		width: 200,
 		zIndex: 10,
 		borderRadius: 5,
-		overflow: 'hidden'
+		overflow: 'hidden',
+		imageRendering: 'pixelated'
 	},
 	inventoryItem: {
 		width: '25%',
@@ -104,23 +102,82 @@ export default function Inventory({ turtle }: InventoryProps) {
 				{menuItems}
 			</Menu>
 			{
-				turtle.inventory.map((item, i) => (
-					<Grid key={i} item xs={3} className={classes.inventoryItem}>
-						<Paper onContextMenu={(ev) => handleClick(ev, i + 1)} className={i + 1 === turtle.selectedSlot ? 'selected' : ''} style={{
-							background: item ? Color({
-								h: hashCode(item.name + ':' + item.damage) % 360,
-								s: 60,
-								l: 40
-							}).toString() : undefined
-						}} onClick={() => turtle.selectSlot(i + 1)}>
-							{item &&
-								<Tooltip title={item.name + ':' + item.damage}>
-									<Typography align="center" variant="h4">{item.count}</Typography>
-								</Tooltip>
-							}
-						</Paper>
-					</Grid>
-				))
+				turtle.inventory.map((item, i) => {
+					// Fonction pour obtenir le chemin de la texture
+					const getTexturePath = (item?: { name: string, damage: number }) => {
+						if (!item) return null;
+						// On retire le préfixe "minecraft:" si présent
+						const baseName = item.name.replace(/^minecraft:/, '');
+						// On regarde d'abord dans /textures/item/, puis dans /textures/block/
+						const itemPath = `/textures/item/${baseName}.png`;
+						const blockPath = `/textures/block/${baseName}.png`;
+						// On retourne les deux chemins pour test dans le rendu
+						return [itemPath, blockPath];
+					};
+					const texturePaths = getTexturePath(item);
+
+					return (
+						<Grid key={i} item xs={3} className={classes.inventoryItem}>
+							<Paper
+								onContextMenu={(ev) => handleClick(ev, i + 1)}
+								className={i + 1 === turtle.selectedSlot ? 'selected' : ''}
+								style={{
+									background: item && texturePaths
+										? `url(${texturePaths[0]}) center/cover no-repeat`
+										: undefined,
+									position: 'relative',
+									overflow: 'hidden',
+									imageRendering: 'pixelated'
+								}}
+								onClick={() => turtle.selectSlot(i + 1)}
+							>
+								{item &&
+									<Tooltip title={item.name + ':' + item.damage}>
+										<>
+											{/* Image invisible pour fallback block texture si item texture absente */}
+											{texturePaths && (
+												<img
+													src={texturePaths[0]}
+													alt={item.name}
+													style={{ display: 'none' }}
+													onError={e => {
+														const img = e.target as HTMLImageElement;
+														if (img.src.endsWith(texturePaths[0])) {
+															// Change le fond pour la texture block si item absente
+															(img.parentElement!.parentElement as HTMLElement).style.background =
+																`url(${texturePaths[1]}) center/cover no-repeat`;
+															img.src = texturePaths[1];
+														} else {
+															// Si aucune texture, retire l'image de fond
+															(img.parentElement!.parentElement as HTMLElement).style.background = '';
+															img.style.display = 'none';
+														}
+													}}
+												/>
+											)}
+											<span
+												style={{
+													position: 'absolute',
+													bottom: 2,
+													right: 4,
+													color: 'white',
+													fontSize: 14,
+													textShadow: '1px 1px 2px #000',
+													fontWeight: 700,
+													userSelect: 'none',
+													pointerEvents: 'none',
+													imageRendering: 'pixelated'
+												}}
+											>
+												{item.count}
+											</span>
+										</>
+									</Tooltip>
+								}
+							</Paper>
+						</Grid>
+					);
+				})
 			}
 		</Grid>
 	);
