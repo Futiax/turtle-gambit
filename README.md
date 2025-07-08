@@ -25,8 +25,9 @@ Controls
 
 
 
-### Fork of [ottomated/turtle-gambit](https://github.com/ottomated/turtle-gambit)
-The plan of this fork is to update the dependencies as most of the current dependencies of the [ottomated/turtle-gambit](https://github.com/ottomated/turtle-gambit) repo is no longer maintained or supported, which causes issues during installation.
+### Fork of [ottomated/turtle-gambit](https://github.com/ottomated/turtle-gambit) and [Sharmasrijan1/turtle-gambit](https://github.com/Sharmasrijan1/turtle-gambit)
+
+I use Sharmasrijan1 patch to update the dependencies as most of the current dependencies of the [ottomated/turtle-gambit](https://github.com/ottomated/turtle-gambit) repo is no longer maintained or supported, which causes issues during installation.
 
 # Usage
 ### Prerequisites
@@ -45,8 +46,8 @@ Next you need to setup your turtle script, it is recommended that you have a pas
 
 #### Getting the pastebin ID
 After uploading your new script copy the pastebin id from the url, it should be a 8 character long alphanumerical string.
-For example if the url is `https://pastebin.com/JhWuptAS`
-The pastebin id would be `JhWuptAS`
+For example if the url is `https://https://pastebin.com/fVQuK8nv`
+The pastebin id would be `fVQuK8nv`
 This will be needed later so just keep that in your clipboard or in notepad.
 
 #### Starting up the servers
@@ -71,14 +72,3 @@ Make sure your turtle has fuel in it as it is needed to determine its direction.
 
 #### ERR_PACKAGE_PATH_NOT_EXPORTED
 As of now I have not figured out how to fix this issue and seem to only appear on Windows machines, if you do know how to fix this issue please create a new issue and I will try to add it to this README
-
-# TODO List
-- [x] Use websockets to allow the frontend to communicate to the backend without having to use Carlo
-- [ ] Update dependencies to the latest release
-- [ ] Add more automation to the turtles
-- [x] GPS support for turtles
-- [ ] Some sort of authentication for the control panel?
-- [x] Stop sending entire world data to frontend for one block update ( Only send what is updated )
-- [x] Remove block from database if turtle can go into it
-- [ ] Change the database
-- [ ] Combine turtle and frontend websocket into one websocket
